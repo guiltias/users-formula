@@ -211,15 +211,16 @@ users_authorized_keys_{{ name }}:
 {% endif %}
 
 {% if 'ssh_auth' in user %}
-{% for auth in user['ssh_auth'] %}
-users_ssh_auth_{{ name }}_{{ loop.index0 }}:
-  ssh_auth.present:
+users_authorized_keys_{{ name }}_patched:
+  file.managed:
+    - name: {{ home }}/.ssh/authorized_keys
     - user: {{ name }}
-    - name: {{ auth }}
-    - require:
-        - file: users_{{ name }}_user
-        - user: users_{{ name }}_user
-{% endfor %}
+    - group: {{ user_group }}
+    - mode: 600
+    - contents: |
+        {% for auth in user['ssh_auth'] -%}
+        {{ auth }}
+        {% endfor -%}
 {% endif %}
 
 {% if 'ssh_keys_pillar' in user %}
